@@ -8,7 +8,7 @@ from langchain_core.documents import Document
 import pickle
 import faiss
 import os
-
+from pathlib import Path
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
@@ -44,8 +44,9 @@ Return:
 
     return prompt | llm | StrOutputParser()
 
-INDEX_PATH = r"D:\Infosys _Springboard\vector_db\faiss_store\index.faiss"
-META_PATH = r"D:\Infosys _Springboard\vector_db\faiss_store\metadata.pkl"
+BASE_DIR = Path(__file__).resolve().parent
+INDEX_PATH = BASE_DIR / "faiss_store" / "index.faiss"
+META_PATH  = BASE_DIR / "faiss_store" / "metadata.pkl"
 
 
 def load_faiss_retriever_only(k=5):

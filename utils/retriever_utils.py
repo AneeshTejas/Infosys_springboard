@@ -1,14 +1,15 @@
 import os
 import pickle
 import faiss
-
+from pathlib import Path
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore import InMemoryDocstore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
-INDEX_PATH = r"D:\Infosys _Springboard\vector_db\faiss_store\index.faiss"
-META_PATH = r"D:\Infosys _Springboard\vector_db\faiss_store\metadata.pkl"
+BASE_DIR = Path(__file__).resolve().parent
+INDEX_PATH = BASE_DIR / "faiss_store" / "index.faiss"
+META_PATH  = BASE_DIR / "faiss_store" / "metadata.pkl"
 
 
 def load_retriever(k=5):

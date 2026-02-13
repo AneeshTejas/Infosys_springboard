@@ -1,8 +1,9 @@
 import pickle
 import pandas as pd
 from collections import Counter
-
-META_PATH = r"D:\Infosys _Springboard\vector_db\faiss_store\metadata.pkl"
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+META_PATH = BASE_DIR / "faiss_store" / "metadata.pkl"
 
 
 def load_dataframe():
