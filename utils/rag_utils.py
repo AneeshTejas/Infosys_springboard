@@ -1,25 +1,47 @@
+from pathlib import Path
+import os
+import pickle
+import faiss
+
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.docstore import InMemoryDocstore
 from langchain_core.documents import Document
-import pickle
-import faiss
-import os
-from pathlib import Path
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+
+# =========================
+# ENV — Groq API
+# =========================
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY environment variable not set")
 
 
+# =========================
+# PATHS — Cloud Safe
+# =========================
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+FAISS_DIR = BASE_DIR / "faiss_store"
+
+INDEX_PATH = FAISS_DIR / "index.faiss"
+META_PATH  = FAISS_DIR / "metadata.pkl"
+
+
+# =========================
+# RAG CHAIN
+# =========================
 
 def build_rag_chain():
 
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",   # stable + fast
+        model="llama-3.3-70b-versatile",
         api_key=GROQ_API_KEY,
         temperature=0.2
     )
@@ -44,40 +66,51 @@ Return:
 
     return prompt | llm | StrOutputParser()
 
-BASE_DIR = Path(__file__).resolve().parent
-INDEX_PATH = BASE_DIR / "faiss_store" / "index.faiss"
-META_PATH  = BASE_DIR / "faiss_store" / "metadata.pkl"
 
+# =========================
+# FAISS RETRIEVER (NO LLM)
+# =========================
 
 def load_faiss_retriever_only(k=5):
 
-    with open(META_PATH,"rb") as f:
+    # ---- safety checks ----
+    if not INDEX_PATH.exists() or not META_PATH.exists():
+        raise FileNotFoundError(
+            f"FAISS files missing:\n{INDEX_PATH}\n{META_PATH}"
+        )
+
+    # ---- load metadata ----
+    with open(META_PATH, "rb") as f:
         metadata = pickle.load(f)
 
     docs = {}
-    index_to_id = {}
+    index_to_docstore_id = {}
 
-    for i,item in enumerate(metadata):
-        did = str(i)
-        docs[did] = Document(
+    for i, item in enumerate(metadata):
+        doc_id = str(i)
+        docs[doc_id] = Document(
             page_content=item["clean_text"],
             metadata=item
         )
-        index_to_id[i] = did
+        index_to_docstore_id[i] = doc_id
 
     docstore = InMemoryDocstore(docs)
 
+    # ---- embeddings (CPU SAFE) ----
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True},
     )
 
-    index = faiss.read_index(INDEX_PATH)
+    # ---- load faiss index ----
+    index = faiss.read_index(str(INDEX_PATH))
 
-    vs = FAISS(
+    vectorstore = FAISS(
         embedding_function=embeddings,
         index=index,
         docstore=docstore,
-        index_to_docstore_id=index_to_id,
+        index_to_docstore_id=index_to_docstore_id,
     )
 
-    return vs.as_retriever(search_kwargs={"k":k})
+    return vectorstore.as_retriever(search_kwargs={"k": k})
