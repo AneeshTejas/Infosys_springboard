@@ -73,13 +73,9 @@ Return:
 
 def load_faiss_retriever_only(k=5):
 
-    # ---- safety checks ----
     if not INDEX_PATH.exists() or not META_PATH.exists():
-        raise FileNotFoundError(
-            f"FAISS files missing:\n{INDEX_PATH}\n{META_PATH}"
-        )
+        raise FileNotFoundError("FAISS store missing")
 
-    # ---- load metadata ----
     with open(META_PATH, "rb") as f:
         metadata = pickle.load(f)
 
@@ -87,30 +83,29 @@ def load_faiss_retriever_only(k=5):
     index_to_docstore_id = {}
 
     for i, item in enumerate(metadata):
-        doc_id = str(i)
-        docs[doc_id] = Document(
+        did = str(i)
+        docs[did] = Document(
             page_content=item["clean_text"],
             metadata=item
         )
-        index_to_docstore_id[i] = doc_id
+        index_to_docstore_id[i] = did
 
     docstore = InMemoryDocstore(docs)
 
-    # ---- embeddings (CPU SAFE) ----
+    # ---- SAFE EMBEDDINGS ----
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",
         model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+        encode_kwargs={"normalize_embeddings": True}
     )
 
-    # ---- load faiss index ----
     index = faiss.read_index(str(INDEX_PATH))
 
-    vectorstore = FAISS(
+    vs = FAISS(
         embedding_function=embeddings,
         index=index,
         docstore=docstore,
         index_to_docstore_id=index_to_docstore_id,
     )
 
-    return vectorstore.as_retriever(search_kwargs={"k": k})
+    return vs.as_retriever(search_kwargs={"k": k})
