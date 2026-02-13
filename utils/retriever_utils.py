@@ -6,10 +6,11 @@ from pathlib import Path
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore import InMemoryDocstore
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 
 
 # =========================
-# PATHS (repo-safe)
+# PATHS
 # =========================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,33 +21,35 @@ META_PATH  = FAISS_DIR / "metadata.pkl"
 
 
 # =========================
-# LIGHTWEIGHT EMBEDDING
+# LIGHTWEIGHT EMBEDDINGS (LangChain compatible)
 # =========================
-# IMPORTANT:
-# We do NOT load sentence-transformers here.
-# We reuse vector dimension and build simple hash embeddings
-# compatible enough for similarity search on your built index.
 
-def simple_embed(texts, dim=384):
-    vecs = np.zeros((len(texts), dim), dtype="float32")
-    for i, t in enumerate(texts):
-        for w in t.split():
-            vecs[i, hash(w) % dim] += 1.0
-    # normalize
-    norms = np.linalg.norm(vecs, axis=1, keepdims=True) + 1e-9
-    return vecs / norms
+class SimpleHashEmbeddings(Embeddings):
+    """
+    Torch-free, sentence-transformer-free embeddings
+    Works on Streamlit Cloud
+    """
 
+    def __init__(self, dim: int = 384):
+        self.dim = dim
 
-class SimpleEmbeddingFn:
+    def _embed(self, text: str):
+        vec = np.zeros(self.dim, dtype="float32")
+        for w in text.split():
+            vec[hash(w) % self.dim] += 1.0
+
+        norm = np.linalg.norm(vec) + 1e-9
+        return (vec / norm).tolist()
+
+    def embed_query(self, text: str):
+        return self._embed(text)
+
     def embed_documents(self, texts):
-        return simple_embed(texts).tolist()
-
-    def embed_query(self, text):
-        return simple_embed([text])[0].tolist()
+        return [self._embed(t) for t in texts]
 
 
 # =========================
-# RETRIEVER LOADER
+# RETRIEVER
 # =========================
 
 def load_retriever(k=5):
@@ -54,10 +57,10 @@ def load_retriever(k=5):
     if not INDEX_PATH.exists() or not META_PATH.exists():
         raise RuntimeError(
             f"FAISS store missing at {FAISS_DIR}. "
-            "Make sure faiss_store folder is pushed to GitHub."
+            "Ensure faiss_store folder is committed to repo."
         )
 
-    # ---- metadata ----
+    # ---- load metadata ----
     with open(META_PATH, "rb") as f:
         metadata = pickle.load(f)
 
@@ -74,14 +77,14 @@ def load_retriever(k=5):
 
     docstore = InMemoryDocstore(docs)
 
-    # ---- FAISS index ----
+    # ---- load FAISS ----
     index = faiss.read_index(str(INDEX_PATH))
 
-    # ---- lightweight embeddings ----
-    embeddings = SimpleEmbeddingFn()
+    # ---- embeddings ----
+    embeddings = SimpleHashEmbeddings(dim=index.d)
 
     vectorstore = FAISS(
-        embedding_function=embeddings,
+        embedding_function=embeddings,   # ✅ correct type now
         index=index,
         docstore=docstore,
         index_to_docstore_id=index_to_docstore_id,
