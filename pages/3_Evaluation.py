@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from collections import Counter
 
 from utils.analytics_utils import load_dataframe
-from utils.rag_utils import load_faiss_retriever_only
+
 
 
 # =========================
@@ -137,26 +137,3 @@ low_df = df.sort_values("confidence").head(15)
 st.dataframe(low_df)
 
 
-# =========================
-# VECTOR SEARCH (NO LLM)
-# =========================
-
-st.divider()
-st.subheader("Query Explorer")
-
-retriever = load_faiss_retriever_only(k=5)
-
-query = st.text_input("Search similar reviews")
-
-if query:
-    docs = retriever.invoke(query)
-
-    for i,d in enumerate(docs,1):
-        st.markdown(f"**Result {i}**")
-        st.write(d.page_content)
-        st.caption(
-            f"Aspect: {d.metadata['aspect']} | "
-            f"Sentiment: {d.metadata['sentiment']} | "
-            f"Confidence: {d.metadata['confidence']}"
-        )
-        st.divider()
