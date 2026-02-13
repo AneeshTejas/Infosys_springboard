@@ -4,7 +4,7 @@ import faiss
 
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore import InMemoryDocstore
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 
@@ -51,7 +51,9 @@ def load_retriever(k: int = 5):
 
     # ---- Embedding model ----
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True}
     )
 
     # ---- Load FAISS index (string path required) ----
