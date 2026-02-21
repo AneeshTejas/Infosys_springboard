@@ -1,54 +1,47 @@
 import streamlit as st
 from utils.analytics_utils import load_dataframe
 
-st.set_page_config(
-    page_title="Swiggy Review Intelligence Platform",
-    layout="wide"
-)
-
-# -----------------------------
-# Rename Sidebar "app" → "Dashboard"
-# -----------------------------
-import streamlit as st
-from utils.analytics_utils import load_dataframe
+# =========================
+# PAGE CONFIG
+# =========================
 
 st.set_page_config(
     page_title="Swiggy Review Intelligence Platform",
     layout="wide"
 )
 
-# -------------------------
-# SIDEBAR TITLE FIX
-# -------------------------
+# =========================
+# SIDEBAR FIX
+# =========================
 
 st.markdown("""
 <style>
+
+/* Hide default "app" label */
+section[data-testid="stSidebar"] ul li:first-child div {
+    display: none;
+}
+
+/* Replace it visually with Dashboard */
+section[data-testid="stSidebar"] ul li:first-child::before {
+    content: "Dashboard";
+    font-weight: 600;
+    font-size: 18px;
+    margin-left: 16px;
+    color: white;
+    display: block;
+    padding: 8px 16px;
+}
+
+/* Add Panel header */
 [data-testid="stSidebarNav"]::before {
     content: "Panel";
-    font-size: 30px;
+    font-size: 22px;
     font-weight: 700;
-    margin-left: 10px;
-    margin-bottom: 15px;
+    margin-left: 16px;
+    margin-bottom: 20px;
     display: block;
 }
-</style>
-""", unsafe_allow_html=True)
-
-
-df = load_dataframe()
-
-total = len(df)
-neg_pct = (df["sentiment"]=="Negative").mean()*100
-top_aspect = df["aspect"].mode()[0]
-avg_conf = df["confidence"].mean()
-
-
-# =========================
-# GLOBAL CSS
-# =========================
-
-st.markdown("""
-<style>
 
 /* HERO */
 
@@ -130,6 +123,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# =========================
+# LOAD DATA
+# =========================
+
+df = load_dataframe()
+
+total = len(df)
+neg_pct = (df["sentiment"]=="Negative").mean()*100
+top_aspect = df["aspect"].mode()[0]
+avg_conf = df["confidence"].mean()
 
 # =========================
 # HERO SECTION
@@ -161,13 +164,11 @@ with right:
     </div>
     """, unsafe_allow_html=True)
 
-
 st.write("")
 st.write("")
-
 
 # =========================
-# KPI STRIP (FIXED ALIGNMENT)
+# KPI STRIP (ALIGNED)
 # =========================
 
 c1, c2, c3, c4 = st.columns(4, gap="large")
@@ -200,10 +201,8 @@ c4.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-
 st.write("")
 st.divider()
-
 
 # =========================
 # FEATURE GRID
@@ -240,7 +239,6 @@ with f3:
     </div>
     """, unsafe_allow_html=True)
 
-
 f4,f5,f6 = st.columns(3, gap="large")
 
 with f4:
@@ -270,11 +268,9 @@ with f6:
     </div>
     """, unsafe_allow_html=True)
 
-
 st.write("")
 st.write("")
 st.caption("AI Review Intelligence System — Vector RAG + Sentiment Analytics")
-
 
 # import streamlit as st
 # import pandas as pd
