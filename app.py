@@ -1,47 +1,40 @@
 import streamlit as st
 from utils.analytics_utils import load_dataframe
 
-# =========================
-# PAGE CONFIG
-# =========================
+# =====================================================
+# PAGE CONFIG (MUST BE FIRST STREAMLIT COMMAND)
+# =====================================================
 
 st.set_page_config(
     page_title="Swiggy Review Intelligence Platform",
     layout="wide"
 )
 
-# =========================
-# SIDEBAR FIX
-# =========================
+# =====================================================
+# CUSTOM SIDEBAR (NO DOM HACKS)
+# =====================================================
+
+# Hide default multipage navigation
+st.markdown("""
+<style>
+[data-testid="stSidebarNav"] {display: none;}
+</style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    
+    st.markdown("### Dashboard")
+    st.divider()
+    st.page_link("pages/2_AI_Assistant.py", label="AI Assistant")
+    st.page_link("pages/3_Evaluation.py", label="Evaluation")
+    st.page_link("pages/4_Reports_Alerts.py", label="Reports Alerts")
+
+# =====================================================
+# GLOBAL UI CSS
+# =====================================================
 
 st.markdown("""
 <style>
-
-/* Hide default "app" label */
-section[data-testid="stSidebar"] ul li:first-child div {
-    display: none;
-}
-
-/* Replace it visually with Dashboard */
-section[data-testid="stSidebar"] ul li:first-child::before {
-    content: "Dashboard";
-    font-weight: 600;
-    font-size: 18px;
-    margin-left: 16px;
-    color: white;
-    display: block;
-    padding: 8px 16px;
-}
-
-/* Add Panel header */
-[data-testid="stSidebarNav"]::before {
-    content: "Panel";
-    font-size: 22px;
-    font-weight: 700;
-    margin-left: 16px;
-    margin-bottom: 20px;
-    display: block;
-}
 
 /* HERO */
 
@@ -81,7 +74,7 @@ section[data-testid="stSidebar"] ul li:first-child::before {
     justify-content: center;
 }
 
-/* KPI CARDS */
+/* KPI CARDS allowing dynamic text without misalignment */
 
 .metric-card {
     padding: 24px;
@@ -100,9 +93,10 @@ section[data-testid="stSidebar"] ul li:first-child::before {
 }
 
 .metric-value {
-    font-size: 34px;
+    font-size: 32px;
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.2;
+    word-wrap: break-word;
 }
 
 .m1 {background: linear-gradient(135deg,#4facfe,#00f2fe);}
@@ -123,22 +117,22 @@ section[data-testid="stSidebar"] ul li:first-child::before {
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
+# =====================================================
 # LOAD DATA
-# =========================
+# =====================================================
 
 df = load_dataframe()
 
 total = len(df)
-neg_pct = (df["sentiment"]=="Negative").mean()*100
+neg_pct = (df["sentiment"] == "Negative").mean() * 100
 top_aspect = df["aspect"].mode()[0]
 avg_conf = df["confidence"].mean()
 
-# =========================
+# =====================================================
 # HERO SECTION
-# =========================
+# =====================================================
 
-left, right = st.columns([2,1], gap="large")
+left, right = st.columns([2, 1], gap="large")
 
 with left:
     st.markdown("""
@@ -148,8 +142,9 @@ with left:
                 Swiggy Review Intelligence Platform
             </div>
             <div class="hero-sub">
-                AI-powered customer complaint intelligence, semantic search,
-                and sentiment analytics built on vector retrieval and RAG.
+                AI-powered customer complaint intelligence,
+                semantic search, and sentiment analytics
+                built on vector retrieval and RAG.
             </div>
         </div>
     </div>
@@ -167,9 +162,9 @@ with right:
 st.write("")
 st.write("")
 
-# =========================
-# KPI STRIP (ALIGNED)
-# =========================
+# =====================================================
+# KPI STRIP (FULLY ALIGNED)
+# =====================================================
 
 c1, c2, c3, c4 = st.columns(4, gap="large")
 
@@ -204,13 +199,13 @@ c4.markdown(f"""
 st.write("")
 st.divider()
 
-# =========================
+# =====================================================
 # FEATURE GRID
-# =========================
+# =====================================================
 
 st.subheader("Platform Capabilities")
 
-f1,f2,f3 = st.columns(3, gap="large")
+f1, f2, f3 = st.columns(3, gap="large")
 
 with f1:
     st.markdown("""
@@ -239,7 +234,7 @@ with f3:
     </div>
     """, unsafe_allow_html=True)
 
-f4,f5,f6 = st.columns(3, gap="large")
+f4, f5, f6 = st.columns(3, gap="large")
 
 with f4:
     st.markdown("""
