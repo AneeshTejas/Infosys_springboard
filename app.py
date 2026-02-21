@@ -6,13 +6,29 @@ st.set_page_config(
     layout="wide"
 )
 
+# -----------------------------
+# Rename Sidebar "app" → "Dashboard"
+# -----------------------------
+st.markdown("""
+<style>
+[data-testid="stSidebarNav"]::before {
+    content: "Saide Panel";
+    font-size: 20px;
+    font-weight: 700;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    display: block;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 df = load_dataframe()
 
 total = len(df)
 neg_pct = (df["sentiment"]=="Negative").mean()*100
 top_aspect = df["aspect"].mode()[0]
 avg_conf = df["confidence"].mean()
-
 
 # =========================
 # HERO CSS
@@ -21,36 +37,55 @@ avg_conf = df["confidence"].mean()
 st.markdown("""
 <style>
 
+.hero-container {
+    height: 260px;
+}
+
 .hero {
- padding: 60px 50px;
+ padding: 50px;
  border-radius: 24px;
  background: linear-gradient(135deg,#ff6b00,#ff9f43);
  color: white;
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
 }
 
 .hero-title {
- font-size: 48px;
+ font-size: 42px;
  font-weight: 800;
 }
 
 .hero-sub {
- font-size: 20px;
+ font-size: 18px;
  opacity: 0.95;
  margin-top: 10px;
 }
 
-.card {
- padding: 28px;
- border-radius: 20px;
- background: linear-gradient(135deg,#0f172a,#1e293b);
- border: 1px solid #1f2937;
+.logo-box {
+ padding: 30px;
+ border-radius: 24px;
+ background: linear-gradient(135deg,#ff6b00,#ff9f43);
+ height: 100%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
 
 .metric-card {
- padding: 26px;
+ padding: 24px;
  border-radius: 18px;
  color: white;
  font-weight: 700;
+ height: 140px;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+}
+
+.metric-card h2, .metric-card h3 {
+ margin: 8px 0 0 0;
 }
 
 .m1 {background: linear-gradient(135deg,#4facfe,#00f2fe);}
@@ -63,6 +98,7 @@ st.markdown("""
  border-radius:16px;
  background:#0b1220;
  border:1px solid #1f2937;
+ min-height:140px;
 }
 
 </style>
@@ -73,26 +109,31 @@ st.markdown("""
 # HERO SECTION
 # =========================
 
-left, right = st.columns([2,1])
+left, right = st.columns([2,1], gap="large")
 
 with left:
     st.markdown("""
-    <div class="hero">
-        <div class="hero-title">
-        Swiggy Review Intelligence Platform
-        </div>
-        <div class="hero-sub">
-        AI-powered customer complaint intelligence, semantic search,
-        and sentiment analytics built on vector retrieval and RAG.
+    <div class="hero-container">
+        <div class="hero">
+            <div class="hero-title">
+            Swiggy Review Intelligence Platform
+            </div>
+            <div class="hero-sub">
+            AI-powered customer complaint intelligence, semantic search,
+            and sentiment analytics built on vector retrieval and RAG.
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with right:
-    st.image(
-        "https://upload.wikimedia.org/wikipedia/commons/1/13/Swiggy_logo.png",
-        use_container_width=True
-    )
+    st.markdown("""
+    <div class="hero-container">
+        <div class="logo-box">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Swiggy_logo.png" width="200">
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 st.write("")
@@ -103,7 +144,7 @@ st.write("")
 # KPI STRIP
 # =========================
 
-c1,c2,c3,c4 = st.columns(4)
+c1,c2,c3,c4 = st.columns(4, gap="large")
 
 c1.markdown(
     f'<div class="metric-card m1">Total Reviews<h2>{total}</h2></div>',
@@ -116,7 +157,7 @@ c2.markdown(
 )
 
 c3.markdown(
-    f'<div class="metric-card m3">Top Issue<h3>{top_aspect}</h3></div>',
+    f'<div class="metric-card m3">Top Issue<h2>{top_aspect}</h2></div>',
     unsafe_allow_html=True
 )
 
@@ -124,6 +165,7 @@ c4.markdown(
     f'<div class="metric-card m4">Avg Confidence<h2>{avg_conf:.2f}</h2></div>',
     unsafe_allow_html=True
 )
+
 
 st.write("")
 st.divider()
@@ -135,7 +177,7 @@ st.divider()
 
 st.subheader("Platform Capabilities")
 
-f1,f2,f3 = st.columns(3)
+f1,f2,f3 = st.columns(3, gap="large")
 
 with f1:
     st.markdown("""
@@ -165,7 +207,7 @@ with f3:
     """, unsafe_allow_html=True)
 
 
-f4,f5,f6 = st.columns(3)
+f4,f5,f6 = st.columns(3, gap="large")
 
 with f4:
     st.markdown("""
@@ -198,8 +240,6 @@ with f6:
 st.write("")
 st.write("")
 st.caption("AI Review Intelligence System — Vector RAG + Sentiment Analytics")
-
-
 
 
 # import streamlit as st
